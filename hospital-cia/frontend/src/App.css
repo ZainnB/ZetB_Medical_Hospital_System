@@ -1,0 +1,183 @@
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  padding: 2rem;
+  color: #0f172a;
+}
+
+.auth-card,
+.dashboard {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 18px;
+  padding: 2rem;
+  box-shadow: 0 25px 45px rgba(15, 23, 42, 0.25);
+}
+
+.auth-card h1 {
+  margin-bottom: 0.5rem;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.auth-card input {
+  border: 1px solid #cbd5f5;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+}
+
+.button {
+  border: none;
+  border-radius: 10px;
+  padding: 0.85rem 1.5rem;
+  font-weight: 600;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.button.secondary {
+  background: #94a3b8;
+}
+
+.button.danger {
+  background: #dc2626;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.5rem;
+}
+
+.view-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  background: #f8fafc;
+}
+
+.view-card h2 {
+  margin-top: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.table th,
+.table td {
+  border: 1px solid #cbd5e1;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.dashboard-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.dashboard-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.dashboard-nav button {
+  border: none;
+  background: none;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: #64748b;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.dashboard-nav button:hover {
+  color: #2563eb;
+}
+
+.dashboard-nav button.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.dashboard-footer {
+  margin-top: auto;
+  padding: 1rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.button.small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
