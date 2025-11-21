@@ -17,6 +17,8 @@ dist/
 # SQLite artifacts
 backend/data/*.db
 backend/data/*.sqlite
+backend/logs/*.logs
+
 
 # OS / tooling
 .DS_Store
