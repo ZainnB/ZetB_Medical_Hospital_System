@@ -34,7 +34,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
-    print("SECRET_KEY AT TOKEN GENERATION:", settings.SECRET_KEY)
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -69,11 +68,6 @@ async def get_current_user(
     db: Session = Depends(get_db_session),
 ) -> models.User:
     """Get current authenticated user from JWT token."""
-    print("\n===== AUTH DEBUG =====")
-    print("HEADER TOKEN:", credentials.credentials[:50], "...")
-
-    print("BACKEND SECRET_KEY:", repr(settings.SECRET_KEY))
-    print("BACKEND SECRET_KEY length:", len(str(settings.SECRET_KEY)))
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -83,14 +77,12 @@ async def get_current_user(
     try:
         token = credentials.credentials
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        print("JWT PAYLOAD:", payload)
         user_id = payload.get("sub")
         if user_id is None:
             raise credentials_exception
         user_id = int(user_id)
     except Exception as e:
         print("JWT DECODE ERROR:", type(e).__name__, str(e))
-        print("=========================\n")
         raise credentials_exception
     
     user = db.query(models.User).filter(models.User.user_id == user_id).first()

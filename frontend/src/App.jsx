@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
 import './App.css'
@@ -12,20 +12,17 @@ const EMPTY_SESSION = { token: null, role: null, user_id: null, username: null }
 
 function App() {
   const [session, setSession] = useState(EMPTY_SESSION)
+  const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("[APP] useEffect (startup) running")
 
     const saved = window.localStorage.getItem('hospitalSession')
-    console.log("[APP] saved session from localStorage =", saved)
 
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
-        console.log("[APP] parsed session =", parsed)
 
         if (parsed.token) {
-          console.log("[APP] calling /auth/me to verify token…")
           setSession(parsed)
 
           api.get('/api/auth/me')
@@ -47,15 +44,9 @@ function App() {
       user_id: payload.user_id,
       username: payload.username,
     }
-  
-    console.log("[LOGIN] writing to localStorage =", nextSession)
     localStorage.setItem("hospitalSession", JSON.stringify(nextSession))
-  
-    console.log("[LOGIN] calling setSession(nextSession)")
     setSession(nextSession)
-  
-    console.log("[LOGIN] setSession scheduled. END of handleLogin()")
-    Navigate("/");
+    navigate("/");
   }
 
 

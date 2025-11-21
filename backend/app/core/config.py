@@ -48,9 +48,6 @@ def get_settings() -> Settings:
         db_path = (project_root / db_path).resolve()
     db_path.parent.mkdir(parents=True, exist_ok=True)
     settings.DB_PATH = str(db_path)
-    print("=== LOADING SETTINGS ===")
-    print("SECRET_KEY from env:", repr(os.getenv("SECRET_KEY")))
-    print("========================")
     return settings
 
 

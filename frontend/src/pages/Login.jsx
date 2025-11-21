@@ -47,7 +47,6 @@ const Login = ({ onLogin }) => {
 
   const handleMFASuccess = (sessionData) => {
     setMfaRequired(false)
-    console.log("recieved and sending forward", sessionData)
     onLogin(sessionData)
     toast.success(`Welcome! Logged in as ${sessionData.role}`)
   }

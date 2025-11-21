@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 
 import api from '../services/api'
@@ -43,15 +43,6 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
   }
 
   const handleResend = async () => {
-    useEffect(() => {
-      if (resendCooldown === 0) return;
-      const timer = setInterval(() => {
-        setResendCooldown(prev => prev - 1)
-      }, 1000)
-      return () => clearInterval(timer)
-    }, [resendCooldown])
-
-
     try {
       // Note: In a real implementation, you'd need to store the original credentials
       // For now, we'll just show a message
@@ -63,20 +54,16 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
   }
 
   // Cooldown timer
-  useState(() => {
-    if (resendCooldown > 0) {
-      const timer = setInterval(() => {
-        setResendCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-      return () => clearInterval(timer)
-    }
-  }, [resendCooldown])
+  useEffect(() => {
+    if (resendCooldown === 0) return;
+
+    const timer = setInterval(() => {
+      setResendCooldown(prev => Math.max(prev - 1, 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
 
   return (
     <div
