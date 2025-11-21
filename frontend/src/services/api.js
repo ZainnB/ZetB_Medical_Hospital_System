@@ -4,8 +4,20 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
 })
 
+const NO_AUTH_ENDPOINTS = [
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/mfa-verify"
+];
+
 // Request interceptor: add JWT token
 api.interceptors.request.use((config) => {
+  const cleanUrl = config.url.split("?")[0];
+
+  if (NO_AUTH_ENDPOINTS.includes(cleanUrl)) {
+    return config;
+  }
+
   const stored = window.localStorage.getItem('hospitalSession')
   if (stored) {
     try {

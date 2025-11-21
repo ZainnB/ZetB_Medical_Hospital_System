@@ -14,35 +14,50 @@ function App() {
   const [session, setSession] = useState(EMPTY_SESSION)
 
   useEffect(() => {
+    console.log("[APP] useEffect (startup) running")
+
     const saved = window.localStorage.getItem('hospitalSession')
+    console.log("[APP] saved session from localStorage =", saved)
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
+        console.log("[APP] parsed session =", parsed)
+
         if (parsed.token) {
+          console.log("[APP] calling /auth/me to verify token…")
           setSession(parsed)
-          // Verify token is still valid
-          api.get('/api/auth/me').catch(() => {
-            // Token invalid, clear session
-            window.localStorage.removeItem('hospitalSession')
-            setSession(EMPTY_SESSION)
-          })
+
+          api.get('/api/auth/me')
+            .then(res => console.log("[APP] /auth/me success", res.data))
+            .catch(err => console.log("[APP] /auth/me FAILED", err.response?.data))
         }
-      } catch {
-        window.localStorage.removeItem('hospitalSession')
+      } catch (err) {
+        console.log("[APP] JSON parse failed")
       }
     }
   }, [])
 
   const handleLogin = (payload) => {
+    console.log("[LOGIN] payload received", payload)
+    
     const nextSession = {
-      token: payload.token || payload.access_token,
+      token: payload.token,
       role: payload.role,
       user_id: payload.user_id,
       username: payload.username,
     }
-    window.localStorage.setItem('hospitalSession', JSON.stringify(nextSession))
+  
+    console.log("[LOGIN] writing to localStorage =", nextSession)
+    localStorage.setItem("hospitalSession", JSON.stringify(nextSession))
+  
+    console.log("[LOGIN] calling setSession(nextSession)")
     setSession(nextSession)
+  
+    console.log("[LOGIN] setSession scheduled. END of handleLogin()")
+    Navigate("/");
   }
+
 
   const handleLogout = async () => {
     try {

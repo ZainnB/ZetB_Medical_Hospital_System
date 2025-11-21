@@ -23,7 +23,7 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
         temp_token: tempToken,
         code: code,
       })
-      
+      console.log("sending session data:", data)
       // Store session
       const sessionData = {
         token: data.access_token,
@@ -31,8 +31,7 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
         user_id: data.user_id,
         username: data.username,
       }
-      window.localStorage.setItem('hospitalSession', JSON.stringify(sessionData))
-      
+      window.localStorage.setItem("hospitalSession", JSON.stringify(sessionData))
       onSuccess(sessionData)
     } catch (error) {
       const message = error.response?.data?.detail || 'Invalid MFA code. Please try again.'
@@ -44,10 +43,14 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
   }
 
   const handleResend = async () => {
-    if (resendCooldown > 0) {
-      toast.error(`Please wait ${resendCooldown} seconds before resending`)
-      return
-    }
+    useEffect(() => {
+      if (resendCooldown === 0) return;
+      const timer = setInterval(() => {
+        setResendCooldown(prev => prev - 1)
+      }, 1000)
+      return () => clearInterval(timer)
+    }, [resendCooldown])
+
 
     try {
       // Note: In a real implementation, you'd need to store the original credentials

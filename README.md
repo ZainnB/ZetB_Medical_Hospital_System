@@ -20,7 +20,7 @@ A fully functional, GDPR-compliant Hospital Management System implementing Confi
 
 - **Backend:** Python 3.11, FastAPI, SQLAlchemy, SQLite, JWT, Fernet encryption
 - **Frontend:** React (Vite), Axios, React Router, react-hot-toast
-- **Storage:** SQLite (`backend/data/hospital.db`)
+- **Storage:** SQLite
 - **Testing:** pytest, TestClient
 - **Deployment:** Docker, Docker Compose
 

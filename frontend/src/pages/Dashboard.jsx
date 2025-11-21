@@ -9,6 +9,7 @@ import AuditLogView from '../components/AuditLogView'
 import api from '../services/api'
 
 const Dashboard = ({ session, onLogout }) => {
+  console.log("[DASHBOARD] mounted with session =", session)
   const [patients, setPatients] = useState([])
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
@@ -32,6 +33,7 @@ const Dashboard = ({ session, onLogout }) => {
   }, [])
 
   const fetchPatients = async () => {
+    console.log("[DASHBOARD] Fetching patients, token =", session.token)
     setLoading(true)
     try {
       const { data } = await api.get('/api/patients', {
