@@ -15,8 +15,6 @@ dist/
 !.env.example
 
 # SQLite artifacts
-backend/data/*.db
-backend/data/*.sqlite
 
 # OS / tooling
 .DS_Store
