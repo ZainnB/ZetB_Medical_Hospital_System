@@ -60,7 +60,7 @@ const Login = ({ onLogin }) => {
     <>
       <section className="auth-card">
         <h1>Hospital Dashboard Login</h1>
-        <p>Enter your credentials to continue</p>
+        <h3>Enter your credentials to continue</h3>
 
         <form onSubmit={handleSubmit}>
           <label>
@@ -70,7 +70,7 @@ const Login = ({ onLogin }) => {
               type="text"
               value={credentials.username_or_email}
               onChange={handleChange}
-              placeholder="admin or admin@hospital.local"
+              placeholder="Enter registered Username or Email"
               required
             />
           </label>
@@ -81,7 +81,7 @@ const Login = ({ onLogin }) => {
               type="password"
               value={credentials.password}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder="Enter Password"
               required
             />
           </label>
@@ -90,20 +90,40 @@ const Login = ({ onLogin }) => {
           </button>
         </form>
 
-        <p style={{ marginTop: '1rem', textAlign: 'center' }}>
-          Don't have an account?{' '}
-          <a href="/register" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+        <p style={{ marginTop: "var(--spacing-xl)", textAlign: "center", color: "var(--text-secondary)" }}>
+          Don't have an account?{" "}
+          <a href="/register" style={{ color: "var(--secondary-light)", textDecoration: "none", fontWeight: 600 }}>
             Register here
           </a>
         </p>
 
-        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f3f4f6', borderRadius: '0.5rem' }}>
-          <p style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Demo Credentials:</p>
-          <ul style={{ fontSize: '0.875rem', margin: 0, paddingLeft: '1.5rem' }}>
-            <li>admin / Admin123!</li>
-            <li>dr_smith / Doctor123!</li>
-            <li>recep_jane / Recep123!</li>
-            <li>user1 / User123!</li>
+        <div
+          style={{
+            marginTop: "var(--spacing-xl)",
+            padding: "var(--spacing-lg)",
+            backgroundColor: "var(--light)",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--light-gray)",
+          }}
+        >
+          <p
+            style={{ fontSize: "0.85rem", fontWeight: "600", margin: "0 0 var(--spacing-sm) 0", color: "var(--primary)" }}
+          >
+            Try with Demo Credentials:
+          </p>
+          <ul style={{ fontSize: "0.85rem", margin: 0, paddingLeft: "1.5rem", color: "var(--text-secondary)" }}>
+            <li>
+              <strong>Admin:</strong> admin / Admin123!
+            </li>
+            <li>
+              <strong>Doctor:</strong> Dr_Usama / Doctor123!
+            </li>
+            <li>
+              <strong>Receptionist:</strong> recep_Aarij / Recep123!
+            </li>
+            <li>
+              <strong>User:</strong> user_Zain / User123!
+            </li>
           </ul>
         </div>
       </section>

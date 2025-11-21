@@ -26,8 +26,8 @@ function App() {
           setSession(parsed)
 
           api.get('/api/auth/me')
-            .then(res => console.log("[APP] /auth/me success", res.data))
-            .catch(err => console.log("[APP] /auth/me FAILED", err.response?.data))
+            .then(console.log("[APP] /auth/me success"))
+            .catch(console.log("[APP] /auth/me FAILED"))
         }
       } catch (err) {
         console.log("[APP] JSON parse failed")
@@ -36,7 +36,6 @@ function App() {
   }, [])
 
   const handleLogin = (payload) => {
-    console.log("[LOGIN] payload received", payload)
     
     const nextSession = {
       token: payload.token,

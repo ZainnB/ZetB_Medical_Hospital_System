@@ -23,7 +23,6 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
         temp_token: tempToken,
         code: code,
       })
-      console.log("sending session data:", data)
       // Store session
       const sessionData = {
         token: data.access_token,

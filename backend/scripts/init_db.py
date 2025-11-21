@@ -37,25 +37,25 @@ def initialize_database():
             seed_users = [
                 {
                     "username": "admin",
-                    "email": "admin@hospital.local",
+                    "email": "zainbaig.zb03@gmail.com",
                     "password": "Admin123!",
                     "role": "admin"
                 },
                 {
-                    "username": "dr_smith",
-                    "email": "dr.smith@hospital.local",
+                    "username": "Dr_Usama",
+                    "email": "k224593@gmail.com",
                     "password": "Doctor123!",
                     "role": "doctor"
                 },
                 {
-                    "username": "recep_jane",
-                    "email": "receptionist@hospital.local",
+                    "username": "recep_Aarij",
+                    "email": "abc@gmail.com",
                     "password": "Recep123!",
                     "role": "receptionist"
                 },
                 {
-                    "username": "user1",
-                    "email": "user1@hospital.local",
+                    "username": "user_Zain",
+                    "email": "xyz@gmail.com",
                     "password": "User123!",
                     "role": "user"
                 },
@@ -75,18 +75,18 @@ def initialize_database():
             # Seed sample patients
             seed_patients = [
                 {
-                    "name": "John Doe",
-                    "contact": "555-0101",
+                    "name": "Zain Baig",
+                    "contact": "033-2345",
                     "diagnosis": "Routine checkup"
                 },
                 {
                     "name": "Jane Smith",
-                    "contact": "555-0102",
+                    "contact": "033-8765",
                     "diagnosis": "Follow-up appointment"
                 },
                 {
                     "name": "Bob Johnson",
-                    "contact": "555-0103",
+                    "contact": "032-0103",
                     "diagnosis": "Annual physical"
                 },
             ]

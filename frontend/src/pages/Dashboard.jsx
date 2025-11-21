@@ -9,7 +9,6 @@ import AuditLogView from '../components/AuditLogView'
 import api from '../services/api'
 
 const Dashboard = ({ session, onLogout }) => {
-  console.log("[DASHBOARD] mounted with session =", session)
   const [patients, setPatients] = useState([])
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
@@ -28,12 +27,21 @@ const Dashboard = ({ session, onLogout }) => {
 
   useEffect(() => {
     fetchMeta()
-    const interval = setInterval(fetchMeta, 60000) // Update every minute
+    const interval = setInterval(fetchMeta, 60000)
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    const handler = (e) => {
+      const newRaw = e.detail;
+      setRawMode(newRaw);
+    };
+    window.addEventListener("admin-raw-mode-change", handler);
+    return () => window.removeEventListener("admin-raw-mode-change", handler);
+  }, []);
+
+
   const fetchPatients = async () => {
-    console.log("[DASHBOARD] Fetching patients, token =", session.token)
     setLoading(true)
     try {
       const { data } = await api.get('/api/patients', {
@@ -60,7 +68,7 @@ const Dashboard = ({ session, onLogout }) => {
   }
 
   useEffect(() => {
-    if (activeTab === 'patients') {
+    if (activeTab === 'patients' && session.role === 'admin') {
       fetchPatients()
     } else if (activeTab === 'users' && session.role === 'admin') {
       fetchUsers()
@@ -72,7 +80,7 @@ const Dashboard = ({ session, onLogout }) => {
       const { data } = await api.post('/api/patients/anonymize', {
         patient_id: patientId,
       })
-      toast.success(data.message)
+      toast.success(data.message || 'Patient anonymized successfully')
       fetchPatients()
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Anonymization failed.')
@@ -149,21 +157,22 @@ const Dashboard = ({ session, onLogout }) => {
       <header className="dashboard-header">
         <div>
           <h1>Hospital Management System</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3rem', marginTop: '1.5rem' }}>
             <span
               style={{
-                backgroundColor: roleBadgeColor[session.role] || '#6b7280',
+                backgroundColor: roleBadgeColor[session.role] || '#94a3b8',
                 color: 'white',
-                padding: '0.25rem 0.75rem',
-                borderRadius: '0.25rem',
-                fontSize: '0.875rem',
-                fontWeight: 'bold',
+                padding: '0.35rem 0.85rem',
+                borderRadius: '6px',
+                fontSize: '0.8rem',
+                fontWeight: '700',
                 textTransform: 'uppercase',
+                letterSpacing: '0.3px',
               }}
             >
               {session.role}
             </span>
-            <span style={{ color: '#6b7280' }}>Welcome, {session.username}</span>
+            <span style={{ color: '#64748b', fontWeight: 500 }}>Welcome, {session.username}</span>
           </div>
         </div>
         <button className="button secondary" onClick={onLogout}>
@@ -198,15 +207,9 @@ const Dashboard = ({ session, onLogout }) => {
         {activeTab === 'patients' && (
           <>
             {session.role === 'admin' && (
-              <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={rawMode}
-                    onChange={(e) => setRawMode(e.target.checked)}
-                  />
-                  Show Raw Data (Decrypted)
-                </label>
+              <div
+                style={{ marginBottom: '4rem', display: 'flex', gap: '0rem', alignItems: 'center' }}
+              >
               </div>
             )}
             {session.role === 'admin' ? (
@@ -214,6 +217,7 @@ const Dashboard = ({ session, onLogout }) => {
                 patients={patients}
                 loading={loading}
                 rawMode={rawMode}
+                onToggleRawMode={(v) => setRawMode(v)}
                 onAnonymize={handleAnonymize}
                 onExport={() => handleExport('patients')}
                 onRefresh={fetchPatients}
@@ -237,72 +241,99 @@ const Dashboard = ({ session, onLogout }) => {
         {activeTab === 'users' && session.role === 'admin' && (
           <div className="view-card">
             <h2>User Management</h2>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Username</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.user_id}>
-                    <td>{user.user_id}</td>
-                    <td>{user.username}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <select
-                        value={user.role}
-                        onChange={(e) => handleUpdateUserRole(user.user_id, e.target.value)}
-                        style={{ padding: '0.25rem' }}
-                      >
-                        <option value="admin">Admin</option>
-                        <option value="doctor">Doctor</option>
-                        <option value="receptionist">Receptionist</option>
-                        <option value="user">User</option>
-                      </select>
-                    </td>
-                    <td>{user.is_active ? 'Active' : 'Inactive'}</td>
-                    <td>
-                      <button
-                        className="button small"
-                        onClick={() =>
-                          api
-                            .put(`/api/users/${user.user_id}/activate`)
-                            .then(() => {
-                              toast.success('User status updated')
-                              fetchUsers()
-                            })
-                            .catch(() => toast.error('Failed to update user status'))
-                        }
-                      >
-                        {user.is_active ? 'Deactivate' : 'Activate'}
-                      </button>
-                    </td>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.user_id}>
+                      <td>{user.user_id}</td>
+                      <td>
+                        <strong>{user.username}</strong>
+                      </td>
+                      <td>{user.email}</td>
+                      <td>
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleUpdateUserRole(user.user_id, e.target.value)}
+                          style={{ padding: 'var(--spacing-xs)' }}
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="doctor">Doctor</option>
+                          <option value="receptionist">Receptionist</option>
+                          <option value="user">User</option>
+                        </select>
+                      </td>
+                      <td>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '4px',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            backgroundColor: user.is_active
+                              ? 'rgba(16, 185, 129, 0.1)'
+                              : 'rgba(107, 114, 128, 0.1)',
+                            color: user.is_active ? '#059669' : '#6b7280',
+                          }}
+                        >
+                          {user.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="button small"
+                          onClick={() =>
+                            api
+                            .put(`/api/users/${user.user_id}/activate`)
+                              .then(() => {
+                                toast.success('User status updated')
+                                fetchUsers()
+                              })
+                              .catch(() => toast.error('Failed to update user status'))
+                          }
+                        >
+                          {user.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {!users.length && (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
+                        No users found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {activeTab === 'audit' && session.role === 'admin' && (
-          <AuditLogView onExport={handleExport} />
+          <AuditLogView onExport={() => handleExport('logs')} />
         )}
       </main>
 
       <footer className="dashboard-footer">
-        <div>
-          <span>Uptime: {formatUptime(meta?.uptime_seconds)}</span>
-          <span style={{ marginLeft: '1rem' }}>
-            Last Sync:{' '}
-            {meta?.last_sync_time
-              ? new Date(meta.last_sync_time).toLocaleString()
-              : 'Never'}
+        <div
+          style={{ display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center' }}
+        >
+          <span>⏱️ Uptime: {formatUptime(meta?.uptime_seconds)}</span>
+          <span>
+            📅 Last Sync:{' '}
+            {meta?.last_sync_time ? new Date(meta.last_sync_time).toLocaleString() : 'Never'}
           </span>
         </div>
       </footer>
