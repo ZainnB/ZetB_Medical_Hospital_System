@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import api from '../services/api'
+import Card from './ui/Card'
+import Loader from './ui/Loader'
 
 const UserView = ({ session }) => {
   const [userInfo, setUserInfo] = useState(null)
@@ -22,43 +24,54 @@ const UserView = ({ session }) => {
 
   if (loading) {
     return (
-      <article className="view-card">
-        <p>Loading profile...</p>
-      </article>
+      <Card glassmorphism>
+        <Loader message="Loading profile..." />
+      </Card>
     )
   }
 
   return (
-    <article className="view-card">
-      <h2>User Profile</h2>
-      <p>View your account information and activity.</p>
+    <Card glassmorphism className="animate-fade-in">
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">User Profile</h2>
+      <p className="text-slate-600 mb-6">View your account information and activity.</p>
 
       {userInfo && (
-        <div style={{ marginTop: '1rem' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <strong>Username:</strong> {userInfo.username}
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-50 rounded-lg">
+            <strong className="text-slate-700">Username:</strong>{' '}
+            <span className="text-slate-900">{userInfo.username}</span>
           </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <strong>Email:</strong> {userInfo.email}
+          <div className="p-4 bg-slate-50 rounded-lg">
+            <strong className="text-slate-700">Email:</strong>{' '}
+            <span className="text-slate-900">{userInfo.email}</span>
           </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <strong>Role:</strong> {userInfo.role}
+          <div className="p-4 bg-slate-50 rounded-lg">
+            <strong className="text-slate-700">Role:</strong>{' '}
+            <span className="text-slate-900">{userInfo.role}</span>
           </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <strong>Status:</strong> {userInfo.is_active ? 'Active' : 'Inactive'}
+          <div className="p-4 bg-slate-50 rounded-lg">
+            <strong className="text-slate-700">Status:</strong>{' '}
+            <span
+              className={`inline-block px-3 py-1 rounded-lg text-sm font-semibold ${
+                userInfo.is_active
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-slate-100 text-slate-600'
+              }`}
+            >
+              {userInfo.is_active ? 'Active' : 'Inactive'}
+            </span>
           </div>
         </div>
       )}
 
-      <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f3f4f6', borderRadius: '0.5rem' }}>
-        <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-          As a regular user, you have limited access to the system. Contact an administrator if you need
-          additional permissions.
+      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-slate-700">
+          As a regular user, you have limited access to the system. Contact an administrator if you
+          need additional permissions.
         </p>
       </div>
-    </article>
+    </Card>
   )
 }
 
 export default UserView
-

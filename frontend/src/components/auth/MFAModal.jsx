@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-
-import api from '../services/api'
+import api from '../../services/api'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
 
 const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
   const [code, setCode] = useState('')
@@ -23,7 +24,6 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
         temp_token: tempToken,
         code: code,
       })
-      // Store session
       const sessionData = {
         token: data.access_token,
         role: data.role,
@@ -43,8 +43,6 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
 
   const handleResend = async () => {
     try {
-      // Note: In a real implementation, you'd need to store the original credentials
-      // For now, we'll just show a message
       toast.error('Please restart the login process to resend the code')
       onCancel()
     } catch (error) {
@@ -52,53 +50,30 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
     }
   }
 
-  // Cooldown timer
   useEffect(() => {
-    if (resendCooldown === 0) return;
-
+    if (resendCooldown === 0) return
     const timer = setInterval(() => {
-      setResendCooldown(prev => Math.max(prev - 1, 0));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
-
+      setResendCooldown(prev => Math.max(prev - 1, 0))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [resendCooldown])
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
       onClick={onCancel}
     >
-      <div
-        style={{
-          backgroundColor: 'white',
-          padding: '2rem',
-          borderRadius: '0.5rem',
-          maxWidth: '400px',
-          width: '90%',
-        }}
+      <Card
+        className="max-w-md w-[90%] animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ marginTop: 0 }}>Multi-Factor Authentication</h2>
-        <p>We've sent a 6-digit code to {userEmail}</p>
-        <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-          The code will expire in 5 minutes.
-        </p>
+        <h2 className="text-2xl font-bold mb-4 text-slate-900">Multi-Factor Authentication</h2>
+        <p className="text-slate-700 mb-2">We've sent a 6-digit code to {userEmail}</p>
+        <p className="text-sm text-slate-500 mb-6">The code will expire in 5 minutes.</p>
 
-        <form onSubmit={handleSubmit}>
-          <label>
-            Enter Code
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700 mb-2 block">Enter Code</span>
             <input
               type="text"
               value={code}
@@ -109,47 +84,31 @@ const MFAModal = ({ tempToken, userEmail, onSuccess, onCancel }) => {
               placeholder="000000"
               required
               maxLength={6}
-              style={{
-                fontSize: '1.5rem',
-                letterSpacing: '0.5rem',
-                textAlign: 'center',
-                fontFamily: 'monospace',
-              }}
+              className="w-full px-4 py-4 text-2xl text-center font-mono tracking-[0.5rem] border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
             />
           </label>
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-            <button className="button" type="submit" disabled={loading || code.length !== 6}>
+          <div className="flex gap-3">
+            <Button type="submit" disabled={loading || code.length !== 6} className="flex-1">
               {loading ? 'Verifying...' : 'Verify'}
-            </button>
-            <button
-              className="button secondary"
-              type="button"
-              onClick={onCancel}
-              disabled={loading}
-            >
+            </Button>
+            <Button variant="secondary" type="button" onClick={onCancel} disabled={loading}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
 
-        <p style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.875rem' }}>
+        <p className="mt-6 text-center text-sm text-slate-600">
           Didn't receive the code?{' '}
           <button
             type="button"
             onClick={handleResend}
             disabled={resendCooldown > 0}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#3b82f6',
-              textDecoration: 'underline',
-              cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
-            }}
+            className="text-blue-600 font-semibold hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
           </button>
         </p>
-      </div>
+      </Card>
     </div>
   )
 }

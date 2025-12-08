@@ -16,6 +16,8 @@ class User(Base):
     role = Column(String(50), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    gdpr_consent = Column(Boolean, default=False, nullable=False)
+    gdpr_consent_date = Column(DateTime, nullable=True)
     logs = relationship("Log", back_populates="user")
     
     __table_args__ = (

@@ -1,20 +1,41 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-
-import AdminView from '../components/AdminView'
-import DoctorView from '../components/DoctorView'
-import ReceptionView from '../components/ReceptionView'
-import UserView from '../components/UserView'
-import AuditLogView from '../components/AuditLogView'
 import api from '../services/api'
+import DashboardLayout from '../layouts/DashboardLayout'
+import AdminPatients from '../components/admin/AdminPatients'
+import AdminUsers from '../components/admin/AdminUsers'
+import AdminAuditLogs from '../components/admin/AdminAuditLogs'
+import AdminStats from '../components/admin/AdminStats'
+import DoctorDashboard from '../components/doctor/DoctorDashboard'
+import ReceptionistDashboard from '../components/receptionist/ReceptionistDashboard'
+import UserView from '../components/UserView'
+import ConsentBanner from '../components/gdpr/ConsentBanner'
+import { usePatients } from '../hooks/usePatients'
+import { useUsers } from '../hooks/useUsers'
+import { useAuditLogs } from '../hooks/useAuditLogs'
 
 const Dashboard = ({ session, onLogout }) => {
-  const [patients, setPatients] = useState([])
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('patients')
   const [rawMode, setRawMode] = useState(false)
   const [meta, setMeta] = useState(null)
+  
+  const { patients, loading: patientsLoading, fetchPatients } = usePatients(session.role, rawMode)
+  const { users, loading: usersLoading, fetchUsers } = useUsers()
+  const { logs, loading: logsLoading, filters, pagination, fetchLogs, handleFilterChange, setPagination } = useAuditLogs(session.role === 'admin' && activeTab === 'audit')
+
+  // Fetch users only when admin tab is active
+  useEffect(() => {
+    if (session.role === 'admin' && activeTab === 'users') {
+      fetchUsers()
+    }
+  }, [session.role, activeTab, fetchUsers])
+
+  // Fetch audit logs only when admin audit tab is active
+  useEffect(() => {
+    if (session.role === 'admin' && activeTab === 'audit') {
+      fetchLogs()
+    }
+  }, [session.role, activeTab, fetchLogs])
 
   const fetchMeta = async () => {
     try {
@@ -30,50 +51,6 @@ const Dashboard = ({ session, onLogout }) => {
     const interval = setInterval(fetchMeta, 60000)
     return () => clearInterval(interval)
   }, [])
-
-  useEffect(() => {
-    const handler = (e) => {
-      const newRaw = e.detail;
-      setRawMode(newRaw);
-    };
-    window.addEventListener("admin-raw-mode-change", handler);
-    return () => window.removeEventListener("admin-raw-mode-change", handler);
-  }, []);
-
-
-  const fetchPatients = async () => {
-    setLoading(true)
-    try {
-      const { data } = await api.get('/api/patients', {
-        params: { raw: rawMode && session.role === 'admin' },
-      })
-      setPatients(data)
-    } catch (error) {
-      toast.error('Failed to fetch patients.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchUsers = async () => {
-    setLoading(true)
-    try {
-      const { data } = await api.get('/api/users')
-      setUsers(data)
-    } catch (error) {
-      toast.error('Failed to fetch users.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (activeTab === 'patients' && session.role === 'admin') {
-      fetchPatients()
-    } else if (activeTab === 'users' && session.role === 'admin') {
-      fetchUsers()
-    }
-  }, [activeTab, rawMode, session.role])
 
   const handleAnonymize = async (patientId = null) => {
     try {
@@ -101,7 +78,7 @@ const Dashboard = ({ session, onLogout }) => {
       anchor.click()
       window.URL.revokeObjectURL(url)
       toast.success('CSV export downloaded')
-      fetchMeta() // Update last sync time
+      fetchMeta()
     } catch (error) {
       toast.error('CSV export failed.')
     }
@@ -127,217 +104,74 @@ const Dashboard = ({ session, onLogout }) => {
     }
   }
 
-  const handleUpdateUserRole = async (userId, role) => {
-    try {
-      await api.put(`/api/users/${userId}/role`, { role })
-      toast.success('User role updated')
-      fetchUsers()
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to update user role.')
+  const renderContent = () => {
+    if (session.role === 'admin') {
+      if (activeTab === 'patients') {
+        return (
+          <AdminPatients
+            patients={patients}
+            loading={patientsLoading}
+            rawMode={rawMode}
+            onToggleRawMode={setRawMode}
+            onAnonymize={handleAnonymize}
+            onExport={() => handleExport('patients')}
+            onRefresh={fetchPatients}
+          />
+        )
+      } else if (activeTab === 'users') {
+        return (
+          <AdminUsers
+            users={users}
+            loading={usersLoading}
+            onRefresh={fetchUsers}
+          />
+        )
+      } else if (activeTab === 'audit') {
+        return (
+          <AdminAuditLogs
+            logs={logs}
+            loading={logsLoading}
+            filters={filters}
+            pagination={pagination}
+            onFilterChange={handleFilterChange}
+            onExport={() => handleExport('logs')}
+            onRefresh={fetchLogs}
+            onPaginationChange={setPagination}
+          />
+        )
+      } else if (activeTab === 'stats') {
+        return <AdminStats />
+      }
+    } else if (session.role === 'doctor') {
+      return <DoctorDashboard patients={patients} loading={patientsLoading} />
+    } else if (session.role === 'receptionist') {
+      return (
+        <ReceptionistDashboard
+          patients={patients}
+          loading={patientsLoading}
+          onAddPatient={handleAddPatient}
+          onUpdatePatient={handleUpdatePatient}
+          onRefresh={fetchPatients}
+        />
+      )
+    } else {
+      return <UserView session={session} />
     }
   }
 
-  const formatUptime = (seconds) => {
-    if (!seconds) return 'N/A'
-    const days = Math.floor(seconds / 86400)
-    const hours = Math.floor((seconds % 86400) / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    return `${days}d ${hours}h ${minutes}m`
-  }
-
-  const roleBadgeColor = {
-    admin: '#dc2626',
-    doctor: '#2563eb',
-    receptionist: '#16a34a',
-    user: '#6b7280',
-  }
-
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div>
-          <h1>Hospital Management System</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3rem', marginTop: '1.5rem' }}>
-            <span
-              style={{
-                backgroundColor: roleBadgeColor[session.role] || '#94a3b8',
-                color: 'white',
-                padding: '0.35rem 0.85rem',
-                borderRadius: '6px',
-                fontSize: '0.8rem',
-                fontWeight: '700',
-                textTransform: 'uppercase',
-                letterSpacing: '0.3px',
-              }}
-            >
-              {session.role}
-            </span>
-            <span style={{ color: '#64748b', fontWeight: 500 }}>Welcome, {session.username}</span>
-          </div>
-        </div>
-        <button className="button secondary" onClick={onLogout}>
-          Logout
-        </button>
-      </header>
-
-      {session.role === 'admin' && (
-        <nav className="dashboard-nav">
-          <button
-            className={activeTab === 'patients' ? 'active' : ''}
-            onClick={() => setActiveTab('patients')}
-          >
-            Patients
-          </button>
-          <button
-            className={activeTab === 'users' ? 'active' : ''}
-            onClick={() => setActiveTab('users')}
-          >
-            Users
-          </button>
-          <button
-            className={activeTab === 'audit' ? 'active' : ''}
-            onClick={() => setActiveTab('audit')}
-          >
-            Audit Logs
-          </button>
-        </nav>
-      )}
-
-      <main className="dashboard-main">
-        {activeTab === 'patients' && (
-          <>
-            {session.role === 'admin' && (
-              <div
-                style={{ marginBottom: '4rem', display: 'flex', gap: '0rem', alignItems: 'center' }}
-              >
-              </div>
-            )}
-            {session.role === 'admin' ? (
-              <AdminView
-                patients={patients}
-                loading={loading}
-                rawMode={rawMode}
-                onToggleRawMode={(v) => setRawMode(v)}
-                onAnonymize={handleAnonymize}
-                onExport={() => handleExport('patients')}
-                onRefresh={fetchPatients}
-              />
-            ) : session.role === 'doctor' ? (
-              <DoctorView patients={patients} loading={loading} />
-            ) : session.role === 'receptionist' ? (
-              <ReceptionView
-                patients={patients}
-                loading={loading}
-                onAddPatient={handleAddPatient}
-                onUpdatePatient={handleUpdatePatient}
-                onRefresh={fetchPatients}
-              />
-            ) : (
-              <UserView session={session} />
-            )}
-          </>
-        )}
-
-        {activeTab === 'users' && session.role === 'admin' && (
-          <div className="view-card">
-            <h2>User Management</h2>
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.user_id}>
-                      <td>{user.user_id}</td>
-                      <td>
-                        <strong>{user.username}</strong>
-                      </td>
-                      <td>{user.email}</td>
-                      <td>
-                        <select
-                          value={user.role}
-                          onChange={(e) => handleUpdateUserRole(user.user_id, e.target.value)}
-                          style={{ padding: 'var(--spacing-xs)' }}
-                        >
-                          <option value="admin">Admin</option>
-                          <option value="doctor">Doctor</option>
-                          <option value="receptionist">Receptionist</option>
-                          <option value="user">User</option>
-                        </select>
-                      </td>
-                      <td>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '4px',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            backgroundColor: user.is_active
-                              ? 'rgba(16, 185, 129, 0.1)'
-                              : 'rgba(107, 114, 128, 0.1)',
-                            color: user.is_active ? '#059669' : '#6b7280',
-                          }}
-                        >
-                          {user.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className="button small"
-                          onClick={() =>
-                            api
-                            .put(`/api/users/${user.user_id}/activate`)
-                              .then(() => {
-                                toast.success('User status updated')
-                                fetchUsers()
-                              })
-                              .catch(() => toast.error('Failed to update user status'))
-                          }
-                        >
-                          {user.is_active ? 'Deactivate' : 'Activate'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {!users.length && (
-                    <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
-                        No users found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'audit' && session.role === 'admin' && (
-          <AuditLogView onExport={() => handleExport('logs')} />
-        )}
-      </main>
-
-      <footer className="dashboard-footer">
-        <div
-          style={{ display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center' }}
-        >
-          <span>⏱️ Uptime: {formatUptime(meta?.uptime_seconds)}</span>
-          <span>
-            📅 Last Sync:{' '}
-            {meta?.last_sync_time ? new Date(meta.last_sync_time).toLocaleString() : 'Never'}
-          </span>
-        </div>
-      </footer>
-    </div>
+    <>
+      <DashboardLayout
+        session={session}
+        onLogout={onLogout}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        meta={meta}
+      >
+        {renderContent()}
+      </DashboardLayout>
+      <ConsentBanner session={session} />
+    </>
   )
 }
 

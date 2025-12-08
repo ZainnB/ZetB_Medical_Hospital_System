@@ -43,7 +43,7 @@ def initialize_database():
                 },
                 {
                     "username": "Dr_Usama",
-                    "email": "k224593@gmail.com",
+                    "email": "k224593@nu.edu.pk",
                     "password": "Doctor123!",
                     "role": "doctor"
                 },

@@ -2,52 +2,38 @@ import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-import './App.css'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ProtectedRoute from './components/ProtectedRoute'
+import { authService } from './services/authService'
 import api from './services/api'
 
-const EMPTY_SESSION = { token: null, role: null, user_id: null, username: null }
-
 function App() {
-  const [session, setSession] = useState(EMPTY_SESSION)
-  const navigate = useNavigate();
+  const [session, setSession] = useState(authService.EMPTY_SESSION)
+  const navigate = useNavigate()
 
   useEffect(() => {
-
-    const saved = window.localStorage.getItem('hospitalSession')
-
+    const saved = authService.getSession()
     if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-
-        if (parsed.token) {
-          setSession(parsed)
-
-          api.get('/api/auth/me')
-            .then(console.log("[APP] /auth/me success"))
-            .catch(console.log("[APP] /auth/me FAILED"))
-        }
-      } catch (err) {
-        console.log("[APP] JSON parse failed")
-      }
+      setSession(saved)
+      api.get('/api/auth/me')
+        .then(() => console.log("[APP] /auth/me success"))
+        .catch(() => console.log("[APP] /auth/me FAILED"))
     }
   }, [])
 
   const handleLogin = (payload) => {
-    
     const nextSession = {
       token: payload.token,
       role: payload.role,
       user_id: payload.user_id,
       username: payload.username,
     }
-    localStorage.setItem("hospitalSession", JSON.stringify(nextSession))
+    authService.saveSession(nextSession)
     setSession(nextSession)
-    navigate("/");
+    navigate("/")
   }
-
 
   const handleLogout = async () => {
     try {
@@ -55,29 +41,25 @@ function App() {
     } catch (error) {
       // Ignore errors on logout
     }
-    window.localStorage.removeItem('hospitalSession')
-    setSession(EMPTY_SESSION)
+    authService.clearSession()
+    setSession(authService.EMPTY_SESSION)
     toast.success('Logged out successfully')
   }
 
   return (
-    <div className="app-shell">
-      <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route
-          path="/"
-          element={
-            session.token ? (
-              <Dashboard session={session} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </div>
+    <Routes>
+      <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<Login onLogin={handleLogin} />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute session={session}>
+            <Dashboard session={session} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 

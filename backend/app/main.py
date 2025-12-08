@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api import auth, export, logs, patients, users
+from app.api import auth, export, logs, patients, users, admin_stats, gdpr
 from app.core.config import settings
 from app.db.session import get_db_session
 from app.services.logging_service import audit_logger
@@ -108,4 +108,6 @@ app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(patients.router, prefix="/api/patients", tags=["patients"])
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
 app.include_router(export.router, prefix="/api/export", tags=["export"])
+app.include_router(admin_stats.router, prefix="/api", tags=["admin"])
+app.include_router(gdpr.router, prefix="/api", tags=["gdpr"])
 
