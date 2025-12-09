@@ -24,7 +24,7 @@ def test_initialize_database_creates_sqlite_file(tmp_path, monkeypatch):
     session = Session()
     try:
         users = session.query(models.User).all()
-        assert len(users) == 3
+        assert len(users) == 4  # admin, Dr_Usama, recep_Aarij, user_Zain
     finally:
         session.close()
 

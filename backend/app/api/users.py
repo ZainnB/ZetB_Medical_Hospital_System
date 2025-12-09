@@ -56,7 +56,7 @@ async def list_users(
         db=db
     )
     
-    return [UserOut.from_orm(user) for user in users]
+    return [UserOut.model_validate(user) for user in users]
 
 
 @router.put("/{user_id}/role", response_model=UserOut, status_code=status.HTTP_200_OK)
@@ -107,7 +107,7 @@ async def update_user_role(
         db=db
     )
     
-    return UserOut.from_orm(user)
+    return UserOut.model_validate(user)
 
 
 @router.put("/{user_id}/activate", response_model=UserOut, status_code=status.HTTP_200_OK)
@@ -145,4 +145,4 @@ async def toggle_user_active(
         db=db
     )
     
-    return UserOut.from_orm(user)
+    return UserOut.model_validate(user)

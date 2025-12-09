@@ -21,8 +21,17 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Setup test environment
+        run: |
+          mkdir -p data
+        env:
+          DB_PATH: backend/data/test_hospital.db
       - name: Run tests
-        run: pytest
+        run: pytest -v
+        env:
+          DB_PATH: backend/data/test_hospital.db
+          SECRET_KEY: test-secret-key-for-ci
+          FERNET_KEY: $(python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 
   frontend:
     runs-on: ubuntu-latest

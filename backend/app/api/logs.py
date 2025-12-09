@@ -95,7 +95,7 @@ async def list_logs(
     )
     
     return LogsResponse(
-        logs=[LogEntry.from_orm(entry) for entry in logs],
+        logs=[LogEntry.model_validate(entry) for entry in logs],
         total=total,
         page=page,
         page_size=page_size

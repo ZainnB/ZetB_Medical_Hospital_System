@@ -1,5 +1,0 @@
-# Additional dependencies for background scheduler
-# Install with: pip install -r requirements_scheduler.txt
-
-schedule>=1.2.0
-
